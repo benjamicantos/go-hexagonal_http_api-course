@@ -37,3 +37,17 @@ func (r *CourseRepository) Save(ctx context.Context, course mooc.Course) error {
 
 	return nil
 }
+
+
+// Save implements the mooc.CourseRepository interface.
+func (r *CourseRepository) GetCourse(ctx context.Context, ID mooc.CourseID) (mooc.Course, error) {
+    row := r.db.QueryRowContext(ctx, "SELECT courses.id, courses.name, courses.duration FROM courses WHERE id = ?", ID.String())
+
+    var courseID, courseName, courseDuration string
+    err := row.Scan(&courseID, &courseName, &courseDuration)
+    if err != nil {
+        return mooc.Course{}, fmt.Errorf("error trying to get course from database: %w", err)
+    }
+
+    return mooc.NewCourse(courseID, courseName, courseDuration)	
+}
