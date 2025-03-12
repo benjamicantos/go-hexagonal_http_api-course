@@ -78,3 +78,27 @@ func Test_CourseRepository_Get_Succeed(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, course, rsC)
 }
+
+func Test_CourseRepository_Get_Error(t *testing.T) {
+	courseID, courseName, courseDuration := "37a0f027-15e6-47cc-a5d2-64183281087e", "Test Course", "10 months"
+	_, err := mooc.NewCourse(courseID, courseName, courseDuration)
+	require.NoError(t, err)
+
+	db, sqlMock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherRegexp))
+	require.NoError(t, err)
+
+	sqlMock.ExpectQuery(`SELECT courses\.id, courses\.name, courses\.duration FROM courses WHERE id = \?`).
+		WithArgs(courseID).
+		WillReturnError(errors.New("something-failed"))
+
+
+	repo := NewCourseRepository(db)
+
+	cID, err := mooc.NewCourseID(courseID)
+	require.NoError(t, err)
+
+	_, err = repo.GetCourse(context.Background(), cID)
+
+	assert.NoError(t, sqlMock.ExpectationsWereMet())
+	assert.Error(t, err)
+}
