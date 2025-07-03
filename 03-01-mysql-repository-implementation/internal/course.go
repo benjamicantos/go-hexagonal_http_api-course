@@ -80,6 +80,8 @@ func (duration CourseDuration) String() string {
 // CourseRepository defines the expected behaviour from a course storage.
 type CourseRepository interface {
 	Save(ctx context.Context, course Course) error
+	Get(ctx context.Context, id string) (Course, error)
+	GetByName(ctx context.Context, name string) ([]Course, error)
 }
 
 //go:generate mockery --case=snake --outpkg=storagemocks --output=platform/storage/storagemocks --name=CourseRepository
